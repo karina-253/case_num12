@@ -86,10 +86,10 @@ def count_bytes(path: str) -> Tuple[bool, int]:
 def analyze_windows_file_types(path: str) -> Tuple[bool,Dict[str, Dict[str, Any]]]:
     """
     Analyzes file types by extensions in the Windows directory.
-    
+
     Args:
         path (str): The path to the analyzed directory.
-        
+
     Returns:
         Tuple[bool, Dict[str, Dict[str, Any]]]: Tuple, where:
          - bool: Operation success (True/False)
@@ -139,10 +139,10 @@ def analyze_windows_file_types(path: str) -> Tuple[bool,Dict[str, Dict[str, Any]
 def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
     """
     Collects statistics on attributes of Windows files in a directory.
-    
+
     Args:
         path (str): The path to the analyzed directory.
-        
+
     Returns:
         Dict[str, int]: Dictionary with statistics on attributes:
             - 'hidden': the number of hidden files
@@ -167,7 +167,7 @@ def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
                 try:
                     if not os.access(full_path, os.W_OK):
                         statistic["readonly"] += 1
-                except:
+                except (PermissionError, OSError):
                     pass
 
                 filename_lower = item["name"].lower()
@@ -179,7 +179,7 @@ def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
             elif item["type"] == "folder" and not item.get("hidden", False):
                 subdir_stats = get_windows_file_attributes_stats(full_path)
                 for key in statistic:
-                    statistic[key] += subdir_stats[key]
+                    statistic[key] += subdir_stats.get(key, 0)
 
         return statistic
 
