@@ -17,11 +17,14 @@ def count_files(path: str) -> Tuple[bool, int]:
          - bool: Operation success (True/False)
          - int: Total number of files in the directory and subdirectories.
     """
+
+    path = utils.normalize_windows_path(path)
+
     try:
         validity, items = navigation.list_directory(path)
         if not validity or not items:
             return False, 0
-        
+
         count = 0
 
         for item in items:
@@ -29,11 +32,10 @@ def count_files(path: str) -> Tuple[bool, int]:
 
             if item['type'] == 'file':
                 count += 1
-            elif item['type'] == 'folder':
-                if not item['hidden']:
-                    success_sub, count_sub = count_files(full_path)
-                    if success_sub:
-                        count += count_sub
+            elif item['type'] == 'folder' and not item.get('hidden', False):
+                success_sub, count_sub = count_files(full_path)
+                if success_sub:
+                    count += count_sub
 
         return True, count
 
@@ -54,6 +56,9 @@ def count_bytes(path: str) -> Tuple[bool, int]:
          - bool: Operation success (True/False)
          - int: The total size of all files in bytes.
     """
+
+    path = utils.normalize_windows_path(path)
+
     try:
         validity, items = navigation.list_directory(path)
         if not validity:
@@ -65,12 +70,11 @@ def count_bytes(path: str) -> Tuple[bool, int]:
             full_path = os.path.join(path, item["name"])
 
             if item['type'] == 'file':
-                count += item['size']
-            elif item['type'] == 'folder':
-                if not item['hidden']:
-                    success_sub, count_sub = count_bytes(full_path)
-                    if success_sub:
-                        count += count_sub
+                count += item.get('size', 0)
+            elif item['type'] == 'folder' and not item.get('hidden', False):
+                success_sub, count_sub = count_bytes(full_path)
+                if success_sub:
+                    count += count_sub
 
         return True, count
 
@@ -94,7 +98,7 @@ def analyze_windows_file_types(path: str) -> Tuple[bool,Dict[str, Dict[str, Any]
             - 'count': the number of files with this extension
             - 'size': the total size of files with this extension
     """
-
+    path = utils.normalize_windows_path(path)
     statistic = defaultdict(lambda: {"count": 0, "size": 0})
 
     try:
@@ -145,7 +149,7 @@ def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
             - 'system': number of system files
             - 'readonly': number of read-only files
     """
-
+    path = utils.normalize_windows_path(path)
     statistic = {"hidden": 0, "system": 0, "readonly": 0}
 
     try:
@@ -160,13 +164,23 @@ def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
                 if item.get("hidden", False):
                     statistic["hidden"] += 1
 
-                if item.get("size", -1) == -1:
-                    statistic["readonly"] += 1
-            elif item["type"] == "folder":
+                try:
+                    if not os.access(full_path, os.W_OK):
+                        statistic["readonly"] += 1
+                except:
+                    pass
+
+                filename_lower = item["name"].lower()
+                if filename_lower.endswith('.sys') or filename_lower in [
+                    'pagefile.sys', 'hiberfil.sys', 'swapfile.sys'
+                ]:
+                    statistic["system"] += 1
+
+            elif item["type"] == "folder" and not item.get("hidden", False):
                 subdir_stats = get_windows_file_attributes_stats(full_path)
                 for key in statistic:
                     statistic[key] += subdir_stats[key]
-                    
+
         return statistic
 
     except Exception as e:
@@ -191,6 +205,7 @@ def show_windows_directory_stats(path: str) -> bool:
         3. Statistics on file attributes
         4. List of the largest files in the current directory
     """
+    path = utils.normalize_windows_path(path)
 
     print(f"\n{'='*60}")
     print(f"Статистика каталога: {path}")
@@ -215,12 +230,12 @@ def show_windows_directory_stats(path: str) -> bool:
 
     print("\n2. ТИПЫ ФАЙЛОВ:")
     print("-" * 40)
-    
+
     success_types, ext_stats = analyze_windows_file_types(path)
     if success_types and ext_stats:
         print(f" Найдено {len(ext_stats)} различных расширений:")
         print()
-        
+
         for extension, data in sorted(
                 ext_stats.items(),
                 key=lambda x: -x[1]["count"]):
@@ -241,7 +256,7 @@ def show_windows_directory_stats(path: str) -> bool:
 
     print("\n4. КРУПНЕЙШИЕ ФАЙЛЫ:")
     print("-" * 40)
-    
+
     success, items = navigation.list_directory(path)
     if success and items:
         files = []
