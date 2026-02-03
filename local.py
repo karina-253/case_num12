@@ -1,0 +1,30 @@
+ERROR_COUNTING_FILES = '''Ошибка при подсчете файлов в'''
+ERROR_COUNTING_SIZE = '''Ошибка при подсчете размера в'''
+ERROR_ANALYZING_TYPES = '''Ошибка анализа типов файлов в'''
+ERROR_ANALYZING_ATTRS = '''Ошибка при анализе атрибутов в'''
+
+STATS_TITLE = '''Статистика каталога:'''
+SECTION_GENERAL = '''1. ОБЩАЯ ИНФОРМАЦИЯ'''
+SECTION_FILE_TYPES = '''2. ТИПЫ ФАЙЛОВ'''
+SECTION_ATTRIBUTES = '''3. АТРИБУТЫ ФАЙЛОВ'''
+SECTION_LARGEST_FILES = '''4. КРУПНЕЙШИЕ ФАЙЛЫ'''
+ANALYSIS_COMPLETE = '''Анализ завершен'''
+
+TOTAL_FILES = '''Файлов всего:'''
+TOTAL_SIZE = '''Общий размер:'''
+ERROR_COUNTING = '''Ошибка при подсчёте файлов'''
+ERROR_SIZES = '''Ошибка при подсчёте размеров'''
+
+FOUND = '''Найдено'''
+DIFFERENT_EXT = '''различных расширений:'''
+FILES = '''файлов'''
+ERROR_EXTENSIONS = '''Ошибка при анализе расширений'''
+
+HIDDEN_FILES = '''Скрытые:'''
+SYSTEM_FILES = '''Системные:'''
+READONLY_FILES = '''Только для чтения:'''
+
+TOP = '''топ'''
+BY_SIZE = '''по размеру:'''
+NO_FILES = '''В этой папке нет файлов'''
+CANNOT_LIST = '''Не удалось получить список файлов'''
