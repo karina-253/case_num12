@@ -3,6 +3,7 @@ from typing import Dict, Any, Tuple
 from collections import defaultdict
 import utils
 import navigation
+import local as lcl
 
 
 def count_files(path: str) -> Tuple[bool, int]:
@@ -17,8 +18,6 @@ def count_files(path: str) -> Tuple[bool, int]:
          - bool: Operation success (True/False)
          - int: Total number of files in the directory and subdirectories.
     """
-
-    path = utils.normalize_windows_path(path)
 
     try:
         validity, items = navigation.list_directory(path)
@@ -40,7 +39,7 @@ def count_files(path: str) -> Tuple[bool, int]:
         return True, count
 
     except Exception as e:
-        print(f"Ошибка при подсчете файлов в {path}: {e}")
+        print(f"{lcl.ERROR_COUNTING_FILES} {path}: {e}")
         return False, 0
 
 
@@ -56,8 +55,6 @@ def count_bytes(path: str) -> Tuple[bool, int]:
          - bool: Operation success (True/False)
          - int: The total size of all files in bytes.
     """
-
-    path = utils.normalize_windows_path(path)
 
     try:
         validity, items = navigation.list_directory(path)
@@ -79,7 +76,7 @@ def count_bytes(path: str) -> Tuple[bool, int]:
         return True, count
 
     except Exception as e:
-        print(f"Ошибка при подсчете размера в {path}: {e}")
+        print(f"{lcl.ERROR_COUNTING_SIZE} {path}: {e}")
         return False, 0
 
 
@@ -98,7 +95,7 @@ def analyze_windows_file_types(path: str) -> Tuple[bool,Dict[str, Dict[str, Any]
             - 'count': the number of files with this extension
             - 'size': the total size of files with this extension
     """
-    path = utils.normalize_windows_path(path)
+
     statistic = defaultdict(lambda: {"count": 0, "size": 0})
 
     try:
@@ -132,7 +129,7 @@ def analyze_windows_file_types(path: str) -> Tuple[bool,Dict[str, Dict[str, Any]
         return True, dict(statistic)
 
     except Exception as e:
-        print(f"Ошибка анализа типов файлов в {path}: {e}")
+        print(f"{lcl.ERROR_ANALYZING_TYPES} {path}: {e}")
         return False, {}
 
 
@@ -149,7 +146,7 @@ def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
             - 'system': number of system files
             - 'readonly': number of read-only files
     """
-    path = utils.normalize_windows_path(path)
+
     statistic = {"hidden": 0, "system": 0, "readonly": 0}
 
     try:
@@ -184,7 +181,7 @@ def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
         return statistic
 
     except Exception as e:
-        print(f"Ошибка при анализе атрибутов в {path}: {e}")
+        print(f"{lcl.ERROR_ANALYZING_ATTRS} {path}: {e}")
         return statistic
 
 
@@ -205,56 +202,55 @@ def show_windows_directory_stats(path: str) -> bool:
         3. Statistics on file attributes
         4. List of the largest files in the current directory
     """
-    path = utils.normalize_windows_path(path)
 
     print(f"\n{'='*60}")
-    print(f"Статистика каталога: {path}")
+    print(f"{lcl.STATS_TITLE} {path}")
     print(f"{'='*60}\n")
 
 
-    print("\n1. ОБЩАЯ ИНФОРМАЦИЯ:")
+    print(f"\n{lcl.SECTION_GENERAL}")
     print("-" * 40)
 
     success_files, total_files = count_files(path)
     if success_files:
-        print(f"Файлов всего: {total_files:,}")
+        print(f"{lcl.TOTAL_FILES} {total_files:,}")
     else:
-        print("Ошибка при подсчёте файлов")
+        print(f"{lcl.ERROR_COUNTING}")
 
     success_size, total_bytes = count_bytes(path)
     if success_size:
-        print(f"Общий размер: {utils.format_size(total_bytes)}")
+        print(f"{lcl.TOTAL_SIZE} {utils.format_size(total_bytes)}")
     else:
-        print("Ошибка при подсчёте размеров")
+        print(f"{lcl.ERROR_SIZES}")
 
 
-    print("\n2. ТИПЫ ФАЙЛОВ:")
+    print(f"\n{lcl.SECTION_FILE_TYPES}")
     print("-" * 40)
 
     success_types, ext_stats = analyze_windows_file_types(path)
     if success_types and ext_stats:
-        print(f" Найдено {len(ext_stats)} различных расширений:")
+        print(f"{lcl.FOUND} {len(ext_stats)} {lcl.DIFFERENT_EXT}")
         print()
 
         for extension, data in sorted(
                 ext_stats.items(),
                 key=lambda x: -x[1]["count"]):
-            print(f"  {extension:10}  {data['count']:5} файлов,"
+            print(f"  {extension:10}  {data['count']:5} {lcl.FILES},"
                   f" {utils.format_size(data['size'])}")
     else:
-        print("Ошибка при анализе расширений")
+        print(f"{lcl.ERROR_EXTENSIONS}")
 
 
-    print("\n3. АТРИБУТЫ ФАЙЛОВ:")
+    print(f"\n{lcl.SECTION_ATTRIBUTES}")
     print("-" * 40)
 
     attrs = get_windows_file_attributes_stats(path)
-    print(f"Скрытые:            {attrs['hidden']:,}")
-    print(f"Системные:          {attrs['system']:,}")
-    print(f"Только для чтения:  {attrs['readonly']:}")
+    print(f"{lcl.HIDDEN_FILES}            {attrs['hidden']:>8,}")
+    print(f"{lcl.SYSTEM_FILES}          {attrs['system']:>8,}")
+    print(f"{lcl.READONLY_FILES}  {attrs['readonly']:>8,}")
 
 
-    print("\n4. КРУПНЕЙШИЕ ФАЙЛЫ:")
+    print(f"\n{lcl.SECTION_LARGEST_FILES}")
     print("-" * 40)
 
     success, items = navigation.list_directory(path)
@@ -268,7 +264,7 @@ def show_windows_directory_stats(path: str) -> bool:
             files.sort(key=lambda x: x[1], reverse=True)
             top_files = files[:10]
 
-            print(f"Найдено {len(files)} файлов, топ {len(top_files)} по размеру:\n")
+            print(f"{lcl.FOUND} {len(files)} {lcl.FILES}, {lcl.TOP} {len(top_files)} {lcl.BY_SIZE}\n")
 
             for i, (name, size) in enumerate(top_files, 1):
                 display_name = name
@@ -277,12 +273,12 @@ def show_windows_directory_stats(path: str) -> bool:
 
                 print(f"{i:2}. {display_name:35} {utils.format_size(size):>10}")
         else:
-            print(" В этой папке нет файлов")
+            print(f"{lcl.NO_FILES}")
     else:
-        print(" Не удалось получить список файлов")
+        print(f"{lcl.CANNOT_LIST}")
 
     print("\n" + "=" * 60)
-    print(" Анализ завершен")
+    print(f"{lcl.ANALYSIS_COMPLETE}")
     print("=" * 60)
 
     return success_files and success_size and success_types
