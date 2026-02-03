@@ -1,16 +1,27 @@
 import os
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, Tuple
 from collections import defaultdict
 import utils
 import navigation
 
 
 def count_files(path: str) -> Tuple[bool, int]:
-    """Рекурсивный подсчет файлов в Windows каталоге"""
+    """
+    Recursive counting of all files in the Windows directory.
+
+    Args:
+        path (str): The path to the analyzed directory.
+
+    Returns:
+        Tuple[bool, int]: Tuple, where:
+         - bool: Operation success (True/False)
+         - int: Total number of files in the directory and subdirectories.
+    """
     try:
         validity, items = navigation.list_directory(path)
         if not validity or not items:
             return False, 0
+        
         count = 0
 
         for item in items:
@@ -18,9 +29,7 @@ def count_files(path: str) -> Tuple[bool, int]:
 
             if item['type'] == 'file':
                 count += 1
-                # Если это директория, рекурсивно обходим ее
             elif item['type'] == 'folder':
-                # Пропускаем скрытые системные папки
                 if not item['hidden']:
                     success_sub, count_sub = count_files(full_path)
                     if success_sub:
@@ -34,7 +43,17 @@ def count_files(path: str) -> Tuple[bool, int]:
 
 
 def count_bytes(path: str) -> Tuple[bool, int]:
-    """Рекурсивный подсчет размера файлов в Windows"""
+    """
+    Recursive calculation of the total size of files in the Windows directory.
+
+    Args:
+        path (str): The path to the analyzed directory.
+
+    Returns:
+        Tuple[bool, int]: Tuple, where:
+         - bool: Operation success (True/False)
+         - int: The total size of all files in bytes.
+    """
     try:
         validity, items = navigation.list_directory(path)
         if not validity:
@@ -47,9 +66,7 @@ def count_bytes(path: str) -> Tuple[bool, int]:
 
             if item['type'] == 'file':
                 count += item['size']
-
             elif item['type'] == 'folder':
-                # Пропускаем скрытые системные папки
                 if not item['hidden']:
                     success_sub, count_sub = count_bytes(full_path)
                     if success_sub:
@@ -62,8 +79,21 @@ def count_bytes(path: str) -> Tuple[bool, int]:
         return False, 0
 
 
-def analyze_windows_file_types(path: str) -> Tuple[bool, Dict[str, Dict[str, Any]]]:
-    """Анализ типов файлов с учетом Windows расширений"""
+def analyze_windows_file_types(path: str) -> Tuple[bool,Dict[str, Dict[str, Any]]]:
+    """
+    Analyzes file types by extensions in the Windows directory.
+    
+    Args:
+        path (str): The path to the analyzed directory.
+        
+    Returns:
+        Tuple[bool, Dict[str, Dict[str, Any]]]: Tuple, where:
+         - bool: Operation success (True/False)
+         - Dict: Extension statistics, where the key is the extension,
+           value is a dictionary with keys:
+            - 'count': the number of files with this extension
+            - 'size': the total size of files with this extension
+    """
 
     statistic = defaultdict(lambda: {"count": 0, "size": 0})
 
@@ -78,7 +108,6 @@ def analyze_windows_file_types(path: str) -> Tuple[bool, Dict[str, Dict[str, Any
             if item["type"] == "folder":
                 success, subdir_stats = analyze_windows_file_types(full_path)
                 if success:
-                    # Слияние словарей
                     for ext, data in subdir_stats.items():
                         statistic[ext]["count"] += data["count"]
                         statistic[ext]["size"] += data["size"]
@@ -104,7 +133,18 @@ def analyze_windows_file_types(path: str) -> Tuple[bool, Dict[str, Dict[str, Any
 
 
 def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
-    """Статистика по атрибутам файлов Windows"""
+    """
+    Collects statistics on attributes of Windows files in a directory.
+    
+    Args:
+        path (str): The path to the analyzed directory.
+        
+    Returns:
+        Dict[str, int]: Dictionary with statistics on attributes:
+            - 'hidden': the number of hidden files
+            - 'system': number of system files
+            - 'readonly': number of read-only files
+    """
 
     statistic = {"hidden": 0, "system": 0, "readonly": 0}
 
@@ -116,18 +156,17 @@ def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
         for item in items:
             full_path = os.path.join(path, item["name"])
 
-            # hidden
             if item["type"] == "file":
                 if item.get("hidden", False):
                     statistic["hidden"] += 1
 
-                if item.get("size", -1) == -1:  # Если не смогли получить размер
+                if item.get("size", -1) == -1:
                     statistic["readonly"] += 1
-
             elif item["type"] == "folder":
                 subdir_stats = get_windows_file_attributes_stats(full_path)
                 for key in statistic:
                     statistic[key] += subdir_stats[key]
+                    
         return statistic
 
     except Exception as e:
@@ -136,13 +175,28 @@ def get_windows_file_attributes_stats(path: str) -> Dict[str, int]:
 
 
 def show_windows_directory_stats(path: str) -> bool:
-    """Комплексный вывод статистики Windows каталога"""
+    """
+    Comprehensive analysis and output of Windows catalog statistics.
+
+    Args:
+        path (str): The path to the analyzed directory.
+
+    Returns:
+        bool: The overall success of the analysis (True if all the basic operations are completed).
+
+    Prints:
+        Outputs to the console:
+        1. General information (number of files, total size)
+        2. Statistics on file types (extensions)
+        3. Statistics on file attributes
+        4. List of the largest files in the current directory
+    """
 
     print(f"\n{'='*60}")
     print(f"Статистика каталога: {path}")
     print(f"{'='*60}\n")
 
-    # 1. Общая информация
+
     print("\n1. ОБЩАЯ ИНФОРМАЦИЯ:")
     print("-" * 40)
 
@@ -154,24 +208,28 @@ def show_windows_directory_stats(path: str) -> bool:
 
     success_size, total_bytes = count_bytes(path)
     if success_size:
-        print(f" Общий размер: {utils.format_size(total_bytes)}")
+        print(f"Общий размер: {utils.format_size(total_bytes)}")
     else:
-        print(" Ошибка при подсчёте размеров")
+        print("Ошибка при подсчёте размеров")
 
-    # 2. Статистика по типам файлов
+
     print("\n2. ТИПЫ ФАЙЛОВ:")
     print("-" * 40)
+    
     success_types, ext_stats = analyze_windows_file_types(path)
     if success_types and ext_stats:
         print(f" Найдено {len(ext_stats)} различных расширений:")
         print()
-
-    for extension, data in sorted(ext_stats.items(), key=lambda x: -x[1]["count"]):
-        print(f"  {extension:10}  {data['count']:5} файлов, {utils.format_size(data['size'])}")
+        
+        for extension, data in sorted(
+                ext_stats.items(),
+                key=lambda x: -x[1]["count"]):
+            print(f"  {extension:10}  {data['count']:5} файлов,"
+                  f" {utils.format_size(data['size'])}")
     else:
         print("Ошибка при анализе расширений")
 
-    # 3. Атрибуты файлов
+
     print("\n3. АТРИБУТЫ ФАЙЛОВ:")
     print("-" * 40)
 
@@ -180,9 +238,10 @@ def show_windows_directory_stats(path: str) -> bool:
     print(f"Системные:          {attrs['system']:,}")
     print(f"Только для чтения:  {attrs['readonly']:}")
 
-    # 4. Крупнейшие файлы (топ-10)
+
     print("\n4. КРУПНЕЙШИЕ ФАЙЛЫ:")
     print("-" * 40)
+    
     success, items = navigation.list_directory(path)
     if success and items:
         files = []
@@ -212,3 +271,4 @@ def show_windows_directory_stats(path: str) -> bool:
     print("=" * 60)
 
     return success_files and success_size and success_types
+    
