@@ -23,7 +23,7 @@ def check_windows_environment() -> bool:
     if not utils.is_windows_os():
         print("=" * 60)
         print(f'{lcl.SYSTEM1}')
-        print(f'{lcl.SYSTEM2}' f"{sys.platform}")
+        print(f'{lcl.SYSTEM2} {sys.platform}')
         print("=" * 60)
         return False
     return True
@@ -53,10 +53,10 @@ def display_windows_banner() -> None:
     print(f'{lcl.DISK1}' f"{current_drive}")
 
     drives = navigation.list_available_drives()
-    print(f'{lcl.DISK2}' f"{', '.join(drives)}")
+    print(f'{lcl.DISK2} {', '.join(drives)}')
 
     current_path = os.getcwd()
-    print(f'{lcl.PATH5}' f"{current_path}")
+    print(f'{lcl.PATH5} {current_path}')
 
     print(f'\n{lcl.FOLDERS}')
     special_folders = navigation.get_windows_special_folders()
@@ -78,7 +78,7 @@ def display_main_menu(current_path: str) -> None:
         None
     """
 
-    print(f'\n{lcl.DIRECTORY}' f"{current_path}")
+    print(f'\n{lcl.DIRECTORY} {current_path}')
     print("-" * 70)
     print(f'{lcl.COMMANDS}')
     print(f'{lcl.FIRST}')
