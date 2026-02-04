@@ -5,6 +5,7 @@ import utils
 import navigation
 import analysis
 import fnmatch
+import local as lcl
 
 def contains_forbidden_chars(name: str) -> bool:
     """
