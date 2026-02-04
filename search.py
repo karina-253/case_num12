@@ -378,4 +378,4 @@ def format_windows_search_results(results: List[Dict[str, Any]],
 
     print("=" * 80)
     print(f"{lcl.ALL_FIND} {len(results)} {lcl.FILES_2}\n")
-                                    
+                                      
