@@ -74,7 +74,7 @@ def validate_windows_path(path: PathString) -> Tuple[bool, str]:
         return False, f'{lcl.COLON2}'
     for char in forbidden_chars:
         if char in remaining_path:
-            return False, f" f'{lcl.SYMBOL}' : '{char}'"
+            return False, f"{lcl.SYMBOL} : {char}"
 
     reserved_names = [
         'CON', 'PRN', 'AUX', 'NUL',
@@ -87,7 +87,7 @@ def validate_windows_path(path: PathString) -> Tuple[bool, str]:
     for part in path_parts:
         name_without_ext = os.path.splitext(part)[0].upper()
         if name_without_ext in reserved_names:
-            return False, f"f'{lcl.NAME1}' : {part}"
+            return False, f"{lcl.NAME1} : {part}"
 
         if part.endswith('.'):
             return False, f'{lcl.NAME2}'
