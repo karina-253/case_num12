@@ -235,4 +235,4 @@ def get_windows_special_folders() -> Dict[str, str]:
         "Documents": os.path.join(user_profile, "Documents"),
         "Downloads": os.path.join(user_profile, "Downloads"),
     }
-  
+    
