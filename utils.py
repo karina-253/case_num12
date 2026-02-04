@@ -294,3 +294,4 @@ def normalize_windows_path(path: str) -> str:
         path = path.rstrip('\\')
 
     return path
+    
